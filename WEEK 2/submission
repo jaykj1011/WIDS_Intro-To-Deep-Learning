@@ -1,0 +1,46 @@
+import torch
+from torchvision import datasets, transforms
+import matplotlib.pyplot as plt
+# Data Loading and Exploration
+transform = transforms.Compose([
+    transforms.ToTensor(),
+    transforms.Lambda(lambda x: x.view(-1)),  # Flatten the images
+    transforms.Normalize((0.5,), (0.5,)),  # Normalize pixel values to the range [-1, 1]
+])
+
+train_dataset = datasets.MNIST(root='./data', train=True, download=True, transform=transform)
+train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=10, shuffle=True)
+# Display the first 10 images and their corresponding labels
+for images, labels in train_loader:
+    for i in range(10):
+        image, label = images[i], labels[i]
+
+        # Denormalize the image tensor for display
+        image = (image * 0.5) + 0.5
+
+        # Display the image and label
+        plt.imshow(image.squeeze(), cmap='gray')
+        plt.title(f'Label: {label.item()}')
+        plt.show()
+    break  # Stop after the first batch
+# Descriptive Statistics
+label_counts = torch.bincount(train_dataset.targets)
+labels = list(range(10))
+plt.bar(labels, label_counts)
+plt.xlabel('Digit')
+plt.ylabel('Count')
+plt.title('Distribution of Labels in MNIST')
+plt.show()
+
+# Visualize a few examples from each digit class
+num_examples_per_class = 5
+for digit in range(10):
+    digit_indices = (train_dataset.targets == digit).nonzero(as_tuple=True)[0][:num_examples_per_class]
+    digit_images = train_dataset.data[digit_indices]
+
+    for i in range(num_examples_per_class):
+        plt.subplot(num_examples_per_class, 1, i + 1)
+        plt.imshow(digit_images[i].numpy(), cmap='gray')
+        plt.title(f'Digit {digit}')
+        plt.axis('off')
+    plt.show()
